@@ -74,7 +74,7 @@ class Http_log_parser {
     agents and running counts similar to the "files" and "referers" routines provided above. We might also identify malicious agents based upon 
     repeated requests for the same files over a given period of time. 
     */
-
+            $data['bad_lines'] = $this->bad_lines;
             return $data;
         } else { // no data in file
             return "Log file was empty or unreadable.";
