@@ -24,7 +24,7 @@ Do you see any performance or security issue in there? Would you re-write it? Wh
 
 From a performance standpoint, the call to <code>isset</code> is probably unnecessary, because the snippet should only run if $_POST['email'] is 
 a single valid email address, which an empty input would fail on a validation test. Unless notifynew.sh specifically requires
-html entities to be converted, it is unnecessary to call <code>htmlspecialchars</code>. However, it should be noted that there are characters that are valid in an email address, specifically including $, that are not addressed by <code>htmlspecialchars</code and that
+html entities to be converted, it is unnecessary to call <code>htmlspecialchars</code>. However, it should be noted that there are characters that are valid in an email address, specifically including $, that are not addressed by <code>htmlspecialchars</code> and that
 would potentially be interpreted by bash as indicating a variable, so we should take care to escape the shell argument properly.
 
 Security-wise, this script is subject to an email header injection attack, as it receives a $_POST value and does not perform any 
