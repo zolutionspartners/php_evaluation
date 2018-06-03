@@ -6,7 +6,7 @@
 
 Bonus: List the top user agents (and their %'s) and try to separate any malicious request from the "good" ones.</b>
 
-See file 'http_log_parser.php', which contains a class for parsing an HTTP log.
+See file 'http_log_parser.php', which contains a class for parsing an HTTP log. Calling the <code>get_stats()</code> method on the class object, with the path to the logfile you wish to parse, will return an array containing the requested data, which can be used to populate a report in the desired format.
 
 <h2>2-PHP code analysis</h2>
 
@@ -23,14 +23,14 @@ See file 'http_log_parser.php', which contains a class for parsing an HTTP log.
 Do you see any performance or security issue in there? Would you re-write it? Why? How?</b>
 
 From a performance standpoint, the call to <code>isset</code> is probably unnecessary, because the snippet should only run if $_POST['email'] is 
-a single valid email address, which an empty input would fail on a validation test. It's also unnecessary to call 
-<code>htmlspecialchars</code> because notifynew.sh is a bash script, not an HTML file for which HTML entities are required.
-However, it should be noted that there are characters that are valid in an email address, specifically including $, that 
+a single valid email address, which an empty input would fail on a validation test. Unless notifynew.sh specifically requires
+html entities to be converted, it is unnecessary to call <code>htmlspecialchars</code>. However, it should be noted that there are characters that are valid in an email address, specifically including $, that are not addressed by <code>htmlspecialchars</code and that
 would potentially be interpreted by bash as indicating a variable, so we should take care to escape the shell argument properly.
 
 Security-wise, this script is subject to an email header injection attack, as it receives a $_POST value and does not perform any 
 validation to verify that the supplied input is a single, valid email address. In addition, it is theoretically possible for a 
-malicious user to trick the system into executing an arbitrary command.  
+malicious user to trick the system into executing an arbitrary command by concatenating that command onto the end of the email
+address with a semicolon.
 
 I would rewrite the code snippet as follows:
 
@@ -43,7 +43,10 @@ if ($email_input !== false) {
 
 For additional security we should probably bump the email up against the user database to make sure it's valid. I have a bit of
 trepidation about calling an email-sending bash script from PHP, so I would probably not set it up this way to begin with, but 
-with appropriate security protocols it should be fine. 
+with appropriate security protocols it should be fine. (My preference would be to call a PHP class that facilitates SMTP through
+an actual email account, which would require password validation and would permit outbound spam screening. Any non-email functions
+in notifynew.sh could still be handled by calling that script. This has the benefit of preventing the server from acting as an open
+or semi-open relay.)
 
 <h2>3-PHP decoding</h2>
 
@@ -183,8 +186,8 @@ code as follows:
         echo '<title>Welcome to site </title>';
     }
 
-    if ($content = file_get_contents("/site/content/".$page)) { // will return false if $filename does not exist)
-        echo htmlspecialchars($content);
+    if (is_readable("/site/content/".$page)) {
+        echo htmlspecialchars(file_get_contents("/site/content/".$page));
     } else {
         echo "File $page not found.";
     }</code></pre>
